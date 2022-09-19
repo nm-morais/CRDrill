@@ -3,8 +3,13 @@
 Check for status of platform with name `plat-stg-us-east-1-3`
 
 ```
-$ CRDrill  --name plat-stg-us-east-1-3 --type platforms
+$ CRDrill  --name plat-stg-us-east-1-1 --type platforms
 ```
+
+```
+$ CRDrill  --name company-a --type tenants
+```
+
 
 NOTE: THis sccript uses the current active context on kubeconfig file. You can specify the file to use via env var:
 
