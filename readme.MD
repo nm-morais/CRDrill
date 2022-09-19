@@ -1,3 +1,17 @@
+# Usage
+
+Check for status of platform with name `plat-stg-us-east-1-3`
+
+```
+$ CRDrill  --name plat-stg-us-east-1-3 --type platforms
+```
+
+NOTE: THis sccript uses the current active context on kubeconfig file. You can specify the file to use via env var:
+
+```
+$ export KUBECONFIG=~/.kube/<MY_CONFIG>
+```
+
 # How to build
 
 1 - Clone the repo
@@ -28,6 +42,12 @@ $ sudo chmod +x CRDrill
 
 ```
 $ sudo mv CRDrill /usr/local/bin
+```
+
+Alternatively, you can also make use of the makefile that runs the commands above
+
+```
+$ sudo make install
 ```
 
 

@@ -25,18 +25,17 @@ var (
 	pluralizeCl          = pluralize.NewClient()
 )
 
-func getCRD(clientset *kubernetes.Clientset, crdPath string, crd *CrossplaneCRD) {
+func getCRD(clientset *kubernetes.Clientset, crdPath string, crd *CrossplaneCRD) error {
 	// logger.Info("Querying:", crdPath)
 	d, err := clientset.RESTClient().Get().AbsPath(crdPath).DoRaw(context.TODO())
 	if err != nil {
-		if err.Error() == NotFoundErr.Error() {
-			logger.Panicf("Got err: %s, verify if your specified type is correct, and if you are specifying the correct context", err)
-		}
-		logger.Panicf("Got err: %s", err)
+		return err
+
 	}
 	if err := json.Unmarshal(d, &crd); err != nil {
 		logger.Panic(err)
 	}
+	return nil
 }
 
 func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD) {
@@ -45,7 +44,10 @@ func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD
 		crdKindPLural := pluralizeCl.Plural(crdKindLower)
 		crdPath := fmt.Sprintf("/apis/%s/%s/%s", ref.ApiVersion, crdKindPLural, ref.Name)
 		childCRD := CrossplaneCRD{}
-		getCRD(clientSet, crdPath, &childCRD)
+		if err := getCRD(clientSet, crdPath, &childCRD); err != nil {
+			log.Errorf("Got error: %s. On CRD: %v", err, childCRD)
+			continue
+		}
 		ready, err := childCRD.IsReady()
 		if err == nil && !ready { // has "Ready" condition and is not ready
 			log.Warnf("%v is not ready", childCRD)
@@ -66,7 +68,9 @@ func CRDrill(clientSet *kubernetes.Clientset, kubeConfig string, crdType string,
 	logger.Info()
 
 	crd := CrossplaneCRD{}
-	getCRD(clientSet, crdPath, &crd)
+	if err := getCRD(clientSet, crdPath, &crd); err != nil {
+		log.Panicf("Got error: %s. Obtaining CRD on path: %s", err, crdPath)
+	}
 	log.Info("Inspecting CRD: ", crd)
 	ready, _ := crd.IsReady()
 	if !ready { // not ready
@@ -98,11 +102,22 @@ func parseArgs() (*string, *string, *string) {
 	crdName := flag.String("name", "", "name of resource")
 	flag.Parse()
 
+	if crdType == nil {
+		fmt.Println("argumment 'type' is null")
+		os.Exit(1)
+	}
+	if crdName == nil {
+		fmt.Println("argumment 'name' is null")
+		os.Exit(1)
+	}
+
 	if *crdType == "" {
-		logger.Panic("argumment 'type' is null")
+		fmt.Println("argumment 'type' is empty")
+		os.Exit(1)
 	}
 	if *crdName == "" {
-		logger.Panic("argumment 'name' is null")
+		fmt.Println("argumment 'name' is empty")
+		os.Exit(1)
 	}
 
 	return kubeconfig, crdType, crdName
