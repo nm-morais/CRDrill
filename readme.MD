@@ -14,6 +14,15 @@ $ export KUBECONFIG=~/.kube/<MY_CONFIG>
 
 # How to build
 
+## Makefile
+
+Alternatively, you can also make use of the makefile that runs the commands above
+
+```
+$ sudo make install
+```
+
+## Manually
 1 - Clone the repo
 
 ```
@@ -44,10 +53,6 @@ $ sudo chmod +x CRDrill
 $ sudo mv CRDrill /usr/local/bin
 ```
 
-Alternatively, you can also make use of the makefile that runs the commands above
 
-```
-$ sudo make install
-```
 
 
