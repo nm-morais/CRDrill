@@ -44,15 +44,23 @@ func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD
 		crdKindPLural := pluralizeCl.Plural(crdKindLower)
 		crdPath := fmt.Sprintf("/apis/%s/%s/%s", ref.ApiVersion, crdKindPLural, ref.Name)
 		childCRD := CrossplaneCRD{}
-		if err := getCRD(clientSet, crdPath, &childCRD); err != nil {
-			log.Errorf("Got error: %s. On CRD: %v", err, childCRD)
+
+		if ref.Name == "" {
+			log.Warnf("Subresource of type %s has not been created", ref.ApiVersion)
 			continue
 		}
+
+		if err := getCRD(clientSet, crdPath, &childCRD); err != nil {
+			log.Errorf("Got error: (%s) on CRD of type: %s, name: %s", err, ref.ApiVersion, ref.Name)
+			continue
+		}
+
 		ready, err := childCRD.IsReady()
 		if err == nil && !ready { // has "Ready" condition and is not ready
 			log.Warnf("%v is not ready", childCRD)
 			findNonReadySubResources(clientSet, childCRD) // recursive step
 		}
+
 		if ok, err := childCRD.HasReconcileError(); ok {
 			log.Errorf("%v has reconcileError: %s", childCRD, err)
 			findNonReadySubResources(clientSet, childCRD) // recursive step
