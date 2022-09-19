@@ -21,7 +21,7 @@ $ export KUBECONFIG=~/.kube/<MY_CONFIG>
 
 ## Makefile
 
-Alternatively, you can also make use of the makefile that runs the commands above
+You make use of the makefile that builds the tool automatically and places it on `/usr/local/bin`:
 
 ```
 $ sudo make install
