@@ -51,6 +51,10 @@ func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD
 			log.Warnf("%v is not ready", childCRD)
 			findNonReadySubResources(clientSet, childCRD) // recursive step
 		}
+		if ok, err := childCRD.HasReconcileError(); ok {
+			log.Errorf("%v has reconcileError: %s", childCRD, err)
+			findNonReadySubResources(clientSet, childCRD) // recursive step
+		}
 	}
 }
 
@@ -74,7 +78,7 @@ func CRDrill(clientSet *kubernetes.Clientset, kubeConfig string, crdType string,
 	logger.Info("All done.")
 }
 
-//  returns: (kubeconfig|crdType|crdName)
+// returns: (kubeconfig|crdType|crdName)
 func parseArgs() (*string, *string, *string) {
 
 	var kubeconfig *string

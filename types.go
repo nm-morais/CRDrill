@@ -16,15 +16,8 @@ type Spec struct {
 	ResourceRefs []ResourceRef `json:"resourceRefs"`
 }
 
-type Condition struct {
-	LastTransitionTime string `json:"lastTransitionTime"`
-	Reason             string `json:"reason"`
-	Status             string `json:"status"`
-	ConditionType      string `json:"type"`
-}
-
 type Status struct {
-	Conditions []Condition `json:"conditions"`
+	Conditions []metav1.Condition `json:"conditions"`
 }
 
 type CrossplaneCRD struct {
@@ -37,7 +30,7 @@ type CrossplaneCRD struct {
 func (crd CrossplaneCRD) IsReady() (bool, error) {
 	hasReadyStatus := false
 	for _, condition := range crd.Status.Conditions {
-		if condition.ConditionType == "Ready" {
+		if condition.Type == "Ready" {
 			hasReadyStatus = true
 			if condition.Status == "True" {
 				return true, nil
@@ -48,6 +41,15 @@ func (crd CrossplaneCRD) IsReady() (bool, error) {
 		return false, nil
 	}
 	return false, NoStatusConditionErr
+}
+
+func (crd CrossplaneCRD) HasReconcileError() (bool, error) {
+	for _, condition := range crd.Status.Conditions {
+		if condition.Type == "Synced" && condition.Reason == "ReconcileError" {
+			return true, fmt.Errorf("%s", condition.Message)
+		}
+	}
+	return false, nil
 }
 
 func (crd CrossplaneCRD) String() string {
