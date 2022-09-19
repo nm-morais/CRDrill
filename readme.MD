@@ -58,6 +58,6 @@ $ sudo chmod +x CRDrill
 $ sudo mv CRDrill /usr/local/bin
 ```
 
-
+6 - Use the tool! `CRDrill  --name company-a --type tenants`
 
 
