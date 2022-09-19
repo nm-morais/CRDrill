@@ -11,7 +11,7 @@ $ CRDrill  --name company-a --type tenants
 ```
 
 
-NOTE: THis sccript uses the current active context on kubeconfig file. You can specify the file to use via env var:
+NOTE: THis sccript uses the current active context on kubeconfig file. By default it uses `~/.kube/config`, but you can specify an override value via env var:
 
 ```
 $ export KUBECONFIG=~/.kube/<MY_CONFIG>
