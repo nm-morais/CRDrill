@@ -46,12 +46,12 @@ func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD
 		childCRD := CrossplaneCRD{}
 
 		if ref.Name == "" {
-			log.Warnf("Subresource of type %s has not been created", ref.ApiVersion)
+			log.Warnf("Subresource of %s, name: %s has not been created", ref.ApiVersion, ref.Name)
 			continue
 		}
 
 		if err := getCRD(clientSet, crdPath, &childCRD); err != nil {
-			log.Errorf("Got error: (%s) on CRD of type: %s, name: %s", err, ref.ApiVersion, ref.Name)
+			log.Errorf("Got error: (%s) on CRD of type: %s/%s, name: %s", err, ref.ApiVersion, crdKindPLural, ref.Name)
 			continue
 		}
 
