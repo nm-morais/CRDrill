@@ -19,10 +19,9 @@ import (
 )
 
 var (
-	NoStatusConditionErr = errors.New("CRD does not have a status condition")
-	NotFoundErr          = errors.New("the server could not find the requested resource")
-	logger               = log.New()
-	pluralizeCl          = pluralize.NewClient()
+	NotFoundErr = errors.New("the server could not find the requested resource")
+	logger      = log.New()
+	pluralizeCl = pluralize.NewClient()
 )
 
 func getCRD(clientset *kubernetes.Clientset, crdPath string, crd *CrossplaneCRD) error {
@@ -46,7 +45,7 @@ func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD
 		childCRD := CrossplaneCRD{}
 
 		if ref.Name == "" {
-			log.Warnf("Subresource of %s, name: %s has not been created", ref.ApiVersion, ref.Name)
+			log.Warnf("Subresource of %s, name: %s, kind: %s has not been created", ref.ApiVersion, ref.Kind, ref.Name)
 			continue
 		}
 
@@ -56,6 +55,16 @@ func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD
 		}
 
 		ready, err := childCRD.IsReady()
+
+		if err != nil {
+			if err == NoStatusConditionErr && childCRD.Kind == "ProviderConfig" {
+				// providers never have a "ready" status
+				continue
+			}
+			log.Warnf("%v has error: %s", childCRD, err)
+			continue
+		}
+
 		if err == nil && !ready { // has "Ready" condition and is not ready
 			log.Warnf("%v is not ready", childCRD)
 			findNonReadySubResources(clientSet, childCRD) // recursive step
@@ -65,6 +74,7 @@ func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD
 			log.Errorf("%v has reconcileError: %s", childCRD, err)
 			findNonReadySubResources(clientSet, childCRD) // recursive step
 		}
+
 	}
 }
 

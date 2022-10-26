@@ -1,9 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+var (
+	NoStatusConditionErr = errors.New("CRD does not have a status condition")
 )
 
 type ResourceRef struct {
@@ -40,6 +45,7 @@ func (crd CrossplaneCRD) IsReady() (bool, error) {
 	if hasReadyStatus {
 		return false, nil
 	}
+
 	return false, NoStatusConditionErr
 }
 
