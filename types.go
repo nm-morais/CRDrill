@@ -42,11 +42,15 @@ func (crd CrossplaneCRD) IsReady() (bool, error) {
 			}
 		}
 	}
-	if hasReadyStatus {
-		return false, nil
+
+	if hasErr, reconcileErr := crd.HasReconcileError(); hasErr {
+		return false, reconcileErr
 	}
 
-	return false, NoStatusConditionErr
+	if !hasReadyStatus {
+		return false, NoStatusConditionErr
+	}
+	return false, nil
 }
 
 func (crd CrossplaneCRD) HasReconcileError() (bool, error) {
