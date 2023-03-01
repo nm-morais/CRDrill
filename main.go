@@ -22,6 +22,11 @@ var (
 	NotFoundErr = errors.New("the server could not find the requested resource")
 	logger      = log.New()
 	pluralizeCl = pluralize.NewClient()
+
+	// customizable list of plurals in case pluralize is not capable of giving the expected result 
+	customPlurals = map[string]string{
+		"tenantgnrs" : "tenantgnrss",
+	}
 )
 
 func getCRD(clientset *kubernetes.Clientset, crdPath string, crd *CrossplaneCRD) error {
@@ -37,10 +42,19 @@ func getCRD(clientset *kubernetes.Clientset, crdPath string, crd *CrossplaneCRD)
 	return nil
 }
 
+func plural(word string) string {
+	if wordPlural, ok := customPlurals[word]; ok {
+		return wordPlural
+	}
+
+	wordPlural := pluralizeCl.Plural(word)
+	return wordPlural
+}
+
 func findNonReadySubResources(clientSet *kubernetes.Clientset, crd CrossplaneCRD) {
 	for _, ref := range crd.Spec.ResourceRefs {
 		crdKindLower := strings.ToLower(ref.Kind)
-		crdKindPLural := pluralizeCl.Plural(crdKindLower)
+		crdKindPLural := plural(crdKindLower)
 		crdPath := fmt.Sprintf("/apis/%s/%s/%s", ref.ApiVersion, crdKindPLural, ref.Name)
 		childCRD := CrossplaneCRD{}
 
